@@ -1,6 +1,6 @@
 Screen Space Multiple Scattering for Unity
 ==========================================
-Repurposes [Keijiro Takahashi's KinoBloom][KinoBloom] to mimic [this.][CAVE] It comes with a modified version of the Global Fog effect found on Unity's Standard Assets package.
+Repurposes [Keijiro Takahashi's KinoBloom][KinoBloom] to mimic [this.][CAVE] It comes with a modified version of the Global Fog effect found inside Unity's Standard Assets package.
 
 Unity thread with more info: https://forum.unity3d.com/threads/screen-space-multiple-scattering.446647/
 
