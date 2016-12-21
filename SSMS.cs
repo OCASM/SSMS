@@ -84,7 +84,7 @@ namespace SSMS
 			set { _blurWeight = value; }
 		}
 
-		[SerializeField, Range(1, 100)]
+		[SerializeField, Range(0.1f, 100)]
 		[Tooltip("Higher number creates a softer look but artifacts are more pronounced.")] // TODO Better description.
 		float _blurWeight = 1f;
 
