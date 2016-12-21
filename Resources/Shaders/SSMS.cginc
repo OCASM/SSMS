@@ -45,6 +45,7 @@ sampler2D _FadeTex;
 sampler2D _FogTex;
 float _Radius;
 half4 _BlurTint;
+half _BlurWeight;
 
 // Brightness function
 half Brightness(half3 c)
@@ -261,7 +262,7 @@ half4 frag_upsample(v2f_multitex i) : SV_Target
     half3 base = DecodeHDR(tex2D(_BaseTex, i.uvBase));
     half3 blur = UpsampleFilter(i.uvMain);
 
-    return EncodeHDR(base + blur);
+    return EncodeHDR(base + blur * (1 + _BlurWeight)) / (1 + (_BlurWeight * 0.735));
 }
 
 half4 frag_upsample_final(v2f_multitex i) : SV_Target
