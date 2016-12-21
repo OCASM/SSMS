@@ -77,9 +77,8 @@ namespace SSMS
 		
         float _radius = 7f;
 
-		/// Bloom radius
-		/// Changes extent of veiling effects in a screen
-		/// resolution-independent fashion.
+		/// Blur Weight
+		/// Gives more strength to the blur texture during the combiner loop.
 		public float blurWeight {
 			get { return _blurWeight; }
 			set { _blurWeight = value; }
