@@ -77,6 +77,18 @@ namespace SSMS
 		
         float _radius = 7f;
 
+		/// Bloom radius
+		/// Changes extent of veiling effects in a screen
+		/// resolution-independent fashion.
+		public float blurWeight {
+			get { return _blurWeight; }
+			set { _blurWeight = value; }
+		}
+
+		[SerializeField, Range(1, 100)]
+		[Tooltip("Higher number creates a softer look but artifacts are more pronounced.")] // TODO Better description.
+		float _blurWeight = 1f;
+
         /// Bloom intensity
         /// Blend factor of the result image.
         public float intensity {
@@ -237,6 +249,7 @@ namespace SSMS
 
 			_material.SetTexture("_FogTex", fogRT);
 			_material.SetTexture ("_FadeTex", _fadeRamp);
+			_material.SetFloat ("_BlurWeight", _blurWeight);
 			_material.SetFloat ("_Radius", _radius);
 			_material.SetColor ("_BlurTint", _blurTint);
 
