@@ -34,8 +34,20 @@ namespace SSMS
 		[Tooltip("Tints the color of this instance of Global Fog.")]
 		public Color fogTint = Color.white;
 		bool saveFogRT = true;
-
 		public Shader fogShader = null;
+		[Header("Global Fog Settings")]
+		[Tooltip("Overrides global settings.")]
+		public bool setGlobalSettings = false;
+		public Color fogColor;
+		public FogMode fogMode;
+		[Tooltip("For exponential modes only.")]
+		[Range(0,1)]
+		public float fogDensity;
+		[Tooltip("For linear mode only.")]
+		public float fogStart;
+		[Tooltip("For linear mode only.")]
+		public float fogEnd;
+
 		private Material fogMaterial = null;
 
 		[HideInInspector]
@@ -49,6 +61,7 @@ namespace SSMS
 				fogMaterial = new Material (fogShader);
 				fogMaterial.hideFlags = HideFlags.DontSave;
 			}
+
 		}
 
 		void OnDisable(){
@@ -61,7 +74,21 @@ namespace SSMS
 
 		[ImageEffectOpaque]
 		void OnRenderImage(RenderTexture source, RenderTexture destination)
-		{
+		{	
+			// Global fog settings
+
+			if (setGlobalSettings) {
+				if (fogStart < 0) { fogStart = 0; }
+				if (fogEnd < 0) { fogEnd = 0; }
+
+				RenderSettings.fogColor = this.fogColor;
+				RenderSettings.fogMode = this.fogMode;
+				RenderSettings.fogDensity = this.fogDensity;
+				RenderSettings.fogStartDistance = this.fogStart;
+				RenderSettings.fogEndDistance = this.fogEnd;
+			}
+
+
 			if (/*CheckResources() == false ||*/ (!distanceFog && !heightFog))
 			{
 				Graphics.Blit(source, destination);
