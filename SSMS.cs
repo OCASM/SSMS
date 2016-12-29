@@ -27,6 +27,9 @@ namespace SSMS
     [ExecuteInEditMode]
     [RequireComponent(typeof(Camera))]
     [AddComponentMenu("OCASM/Image Effects/SSMS")]
+	#if UNITY_5_4_OR_NEWER
+	[ImageEffectAllowedInSceneView]
+	#endif
     public class SSMS : MonoBehaviour
     {
         #region Public Properties
@@ -180,7 +183,6 @@ namespace SSMS
         }
 
 		private Camera cam;
-		private RenderTexture fogRT;
 
         #endregion
 
@@ -199,7 +201,6 @@ namespace SSMS
 				_fadeRamp = Resources.Load("Textures/nonLinear2", typeof(Texture2D)) as Texture2D;
 			};
 
-			fogRT = cam.GetComponent<SSMSGlobalFog> ().fogRT;
         }
 
         void OnDisable()
@@ -246,7 +247,6 @@ namespace SSMS
             _material.SetFloat("_SampleScale", 0.5f + logh - logh_i);
             _material.SetFloat("_Intensity", intensity);
 
-			_material.SetTexture("_FogTex", fogRT);
 			_material.SetTexture ("_FadeTex", _fadeRamp);
 			_material.SetFloat ("_BlurWeight", _blurWeight);
 			_material.SetFloat ("_Radius", _radius);

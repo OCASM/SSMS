@@ -9,6 +9,9 @@ namespace SSMS
 	[ExecuteInEditMode]
 	[RequireComponent (typeof(Camera))]
 	[AddComponentMenu ("OCASM/Image Effects/SSMS Global Fog")]
+	#if UNITY_5_4_OR_NEWER
+	[ImageEffectAllowedInSceneView]
+	#endif
 	public class SSMSGlobalFog : MonoBehaviour {
 
 		[Tooltip("Apply distance-based fog?")]
@@ -158,6 +161,7 @@ namespace SSMS
 			}
 
 			Graphics.Blit(source, destination, fogMaterial, pass);
+			Shader.SetGlobalTexture ("_FogTex", fogRT);
 
 			if (!saveFogRT && fogRT != null){
 				fogRT.Release ();
