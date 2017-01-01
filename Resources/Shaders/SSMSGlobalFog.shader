@@ -157,10 +157,8 @@ CGINCLUDE
 		
 		// Lerp between fog color & original scene color
 		// by fog amount
-		// return lerp(unity_FogColor, sceneColor, fogFac); // disabled OCASM
-		// OCASM
-		sceneColor = sceneColor * pow(fogFac, clamp(_EnLoss,0.001,100));
-		return lerp (unity_FogColor, sceneColor,  clamp(fogFac, 1 - _MaxValue ,1)) * _FogTint; 
+		half4 sceneColorDark = sceneColor * pow(fogFac, clamp(_EnLoss,0.001,100));
+		return lerp (unity_FogColor * half4(_FogTint.rgb,1), lerp(sceneColor, sceneColorDark, _MaxValue),  clamp(fogFac, 1 - _MaxValue ,1)); 
 	}
 
 	half4 ComputeFogB (v2f i, bool distance, bool height) : SV_Target
