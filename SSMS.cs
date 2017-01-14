@@ -145,6 +145,36 @@ namespace SSMS
 			set { _blurTint = value; }
 		}
 
+		/// Particles
+		[Header ("Particles")]
+		/// Particles modify the mask 
+		[SerializeField]
+		[Tooltip("Particles can modify the blur mask.")]
+		bool _particles = false;
+
+		public bool particles {
+			get { return _particles; }
+			set { _particles = value; }
+		}
+
+		[SerializeField, Range (1,4)]
+		[Tooltip("Reduce the size of the particles render texture by this factor.")]
+		int _downsampleFactor = 2;
+
+		public int downsampleFactor {
+			get { return _downsampleFactor; }
+			set { _downsampleFactor = value; }
+		}
+
+		[SerializeField, Range (0,1f)]
+		[Tooltip("View distance of the particles render texture as a percentage of its main camera. Lower = better performance but artifacts might show up.")]
+		float _particlesRTViewDistance = 1f;
+
+		public float particlesRTViewDistance {
+			get { return _particlesRTViewDistance; }
+			set { _particlesRTViewDistance = value; }
+		}
+
 		#endregion
 
         #region Private Members
@@ -182,7 +212,13 @@ namespace SSMS
         #endif
         }
 
+		// SSMS
 		private Camera cam;
+
+		private GameObject particlesCamBase;
+		private Camera particlesCam;
+		private RenderTexture particlesRT;
+		private Shader particlesRTShader;
 
         #endregion
 
@@ -201,14 +237,16 @@ namespace SSMS
 				_fadeRamp = Resources.Load("Textures/nonLinear2", typeof(Texture2D)) as Texture2D;
 			};
 
+			particlesRTShader = Shader.Find ("Hidden/SSMS Replacement Shader");
         }
 
         void OnDisable()
         {
             DestroyImmediate(_material);
+			DestroyImmediate(particlesCamBase);
         }
 
-		// [ImageEffectOpaque]
+		[ImageEffectOpaque]
         void OnRenderImage(RenderTexture source, RenderTexture destination)
         {
             var useRGBM = Application.isMobilePlatform;
@@ -251,6 +289,26 @@ namespace SSMS
 			_material.SetFloat ("_BlurWeight", _blurWeight);
 			_material.SetFloat ("_Radius", _radius);
 			_material.SetColor ("_BlurTint", _blurTint);
+
+			// Particles
+			if (_particles == false) {
+				_material.SetInt("_ParticlesEnabled", 0); 
+				if (particlesCamBase) {	DestroyImmediate (particlesCamBase); }
+			}
+			else {
+				if (!particlesCamBase) {CreateParticlesCam (); }
+
+				_material.SetInt("_ParticlesEnabled", 1); 
+
+				particlesRT = RenderTexture.GetTemporary (tw/_downsampleFactor, th/_downsampleFactor, 0, RenderTextureFormat.RHalf);
+				particlesCam.nearClipPlane = cam.nearClipPlane;
+				particlesCam.farClipPlane = (cam.farClipPlane * _particlesRTViewDistance) + cam.nearClipPlane;
+				particlesCam.targetTexture = particlesRT;
+				particlesCam.fieldOfView = cam.fieldOfView;
+
+				particlesCam.RenderWithShader (particlesRTShader, "RenderType");
+				_material.SetTexture ("_ParticlesTex", particlesRT);
+			}
 
             // prefilter pass
             var prefiltered = RenderTexture.GetTemporary(tw, th, 0, rtFormat);
@@ -305,8 +363,32 @@ namespace SSMS
             }
 
             RenderTexture.ReleaseTemporary(prefiltered);
+			if (_particles == true) {
+				RenderTexture.ReleaseTemporary (particlesRT);
+			}
         }
 
         #endregion
+
+		#region Custom methods
+		void CreateParticlesCam(){
+			particlesCamBase = new GameObject ("SSMS Particles Cam");
+			particlesCamBase.SetActive (false);
+
+			particlesCamBase.transform.SetParent (this.transform);
+			particlesCamBase.transform.localPosition = new Vector3 (0, 0, 0);
+			particlesCamBase.transform.localRotation = Quaternion.Euler (0, 0, 0);
+
+			particlesCamBase.AddComponent <Camera> ();
+			particlesCamBase.AddComponent <SSMSParticlesReplacement> ();
+			particlesCam = particlesCamBase.GetComponent<Camera> ();
+
+			particlesCam.renderingPath = RenderingPath.DeferredShading;
+			particlesCam.backgroundColor = Color.black;
+
+			particlesCam.clearFlags = CameraClearFlags.SolidColor;
+			particlesCam.GetComponent<SSMSParticlesReplacement> ().replacementShader = Shader.Find ("Hidden/SSMS Replacement Shader");
+		}
+		#endregion
     }
 }

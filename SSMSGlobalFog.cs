@@ -24,7 +24,7 @@ namespace SSMS
 		public bool  heightFog = true;
 		[Tooltip("Fog top Y coordinate")]
 		public float height = 1.0f;
-		[Range(0.001f,10.0f)]
+		[Range(0.001f,100.0f)]
 		public float heightDensity = 2.0f;
 		[Tooltip("Push fog away from the camera by this amount")]
 		public float startDistance = 0.0f;
