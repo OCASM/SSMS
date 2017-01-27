@@ -237,7 +237,8 @@ half4 frag_prefilter(v2f_img i) : SV_Target
     m *= max(rq, br - _Threshold) / max(br, 1e-5);
 
     // SMSS 
-    half depth = tex2D(_FogTex, i.uv);
+    half depth = tex2D(_FogTex, i.uv); // Deferred
+    // half depth = tex2D(_FogTex, float2(i.uv.x, 1 - i.uv.y)); // Forward
    	depth = AdjustDepth(depth);
 
     return EncodeHDR(m * depth) * _BlurTint;
@@ -274,7 +275,8 @@ half4 frag_upsample_final(v2f_multitex i) : SV_Target
 #endif
 
     // SMSS
-    half depth = tex2D(_FogTex, i.uvBase);
+    half depth = tex2D(_FogTex, i.uvBase); // Deferred
+    // half depth = tex2D(_FogTex, float2(i.uvBase.x, 1 - i.uvBase.y)); // Forward
     depth = AdjustDepth(depth);
 
     return lerp(base, half4(blur,1) * (1 / _Radius), clamp(depth ,0,_Intensity)) ;

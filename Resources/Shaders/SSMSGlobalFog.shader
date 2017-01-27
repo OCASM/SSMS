@@ -132,11 +132,14 @@ CGINCLUDE
 
 	half4 ComputeFog (v2f i, bool distance, bool height) : SV_Target
 	{
-		half4 sceneColor = tex2D(_MainTex, UnityStereoTransformScreenSpaceTex(i.uv));
+		half4 sceneColor = tex2D(_MainTex, UnityStereoTransformScreenSpaceTex(i.uv)); // Deferred
+		// half4 sceneColor = tex2D(_MainTex, UnityStereoTransformScreenSpaceTex(float2(i.uv.x, 1 - i.uv.y))); // Forward
 		
 		// Reconstruct world space position & direction
 		// towards this screen pixel.
-		float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(i.uv_depth));
+		float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(i.uv_depth)); // Deferred
+		// float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(float2(0.001+i.uv_depth.x, 1 - i.uv_depth.y))); // Forward
+
 		float dpth = Linear01Depth(rawDepth);
 		float4 wsDir = dpth * i.interpolatedRay;
 		float4 wsPos = _CameraWS + wsDir;
@@ -165,7 +168,8 @@ CGINCLUDE
 	{
 		// Reconstruct world space position & direction
 		// towards this screen pixel.
-		float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(i.uv_depth));
+		float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(i.uv_depth)); // Deferred
+		// float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(float2(i.uv_depth.x, 1 - i.uv_depth.y))); // Forward
 		float dpth = Linear01Depth(rawDepth);
 		float4 wsDir = dpth * i.interpolatedRay;
 		float4 wsPos = _CameraWS + wsDir;
