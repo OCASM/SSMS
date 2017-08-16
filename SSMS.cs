@@ -182,8 +182,6 @@ namespace SSMS
         #endif
         }
 
-		private Camera cam;
-
         #endregion
 
         #region MonoBehaviour Functions
@@ -195,8 +193,6 @@ namespace SSMS
             _material.hideFlags = HideFlags.DontSave;
 
 			// SMSS
-			cam = this.GetComponent<Camera> ();
-
 			if (fadeRamp == null) {
 				_fadeRamp = Resources.Load("Textures/nonLinear2", typeof(Texture2D)) as Texture2D;
 			};
