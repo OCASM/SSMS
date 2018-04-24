@@ -98,7 +98,9 @@ namespace SSMS
 				return;
 			}
 
-			if (saveFogRT && fogRT == null){
+			//Create a new FogRT
+            if (saveFogRT && (fogRT == null || fogRT.height < source.height || fogRT.width < source.width))
+            {
 				fogRT = new RenderTexture (source.width, source.height, 0, RenderTextureFormat.Default);
 			}
 
