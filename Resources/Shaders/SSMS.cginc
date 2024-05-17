@@ -90,13 +90,12 @@ half3 DownsampleFilter(float2 uv)
 {
     float4 d = _MainTex_TexelSize.xyxy * float4(-1, -1, +1, +1);
 
-    half3 s;
-    s  = DecodeHDR(tex2D(_MainTex, uv + d.xy));
-    s += DecodeHDR(tex2D(_MainTex, uv + d.zy));
-    s += DecodeHDR(tex2D(_MainTex, uv + d.xw));
-    s += DecodeHDR(tex2D(_MainTex, uv + d.zw));
+    half3 s = DecodeHDR(tex2D(_MainTex, uv + d.xy)) +
+              DecodeHDR(tex2D(_MainTex, uv + d.zy)) +
+              DecodeHDR(tex2D(_MainTex, uv + d.xw)) +
+              DecodeHDR(tex2D(_MainTex, uv + d.zw));
 
-    return s * (1.0 / 4);
+    return s * 0.25;
 }
 
 // Downsample with a 4x4 box filter + anti-flicker filter
@@ -125,31 +124,27 @@ half3 UpsampleFilter(float2 uv)
     // 9-tap bilinear upsampler (tent filter)
     float4 d = _MainTex_TexelSize.xyxy * float4(1, 1, -1, 0) * _SampleScale;
 
-    half3 s;
-    s  = DecodeHDR(tex2D(_MainTex, uv - d.xy));
-    s += DecodeHDR(tex2D(_MainTex, uv - d.wy)) * 2;
-    s += DecodeHDR(tex2D(_MainTex, uv - d.zy));
+    half3 s = DecodeHDR(tex2D(_MainTex, uv - d.xy)) +
+              2 * DecodeHDR(tex2D(_MainTex, uv - d.wy)) +
+              DecodeHDR(tex2D(_MainTex, uv - d.zy)) +
+              2 * DecodeHDR(tex2D(_MainTex, uv + d.zw)) +
+              4 * DecodeHDR(tex2D(_MainTex, uv)) +
+              2 * DecodeHDR(tex2D(_MainTex, uv + d.xw)) +
+              DecodeHDR(tex2D(_MainTex, uv + d.zy)) +
+              2 * DecodeHDR(tex2D(_MainTex, uv + d.wy)) +
+              DecodeHDR(tex2D(_MainTex, uv + d.xy));
 
-    s += DecodeHDR(tex2D(_MainTex, uv + d.zw)) * 2;
-    s += DecodeHDR(tex2D(_MainTex, uv       )) * 4;
-    s += DecodeHDR(tex2D(_MainTex, uv + d.xw)) * 2;
-
-    s += DecodeHDR(tex2D(_MainTex, uv + d.zy));
-    s += DecodeHDR(tex2D(_MainTex, uv + d.wy)) * 2;
-    s += DecodeHDR(tex2D(_MainTex, uv + d.xy));
-
-    return s * (1.0 / 16);
+    return s * 0.0625;
 #else
     // 4-tap bilinear upsampler
     float4 d = _MainTex_TexelSize.xyxy * float4(-1, -1, +1, +1) * (_SampleScale * 0.5);
 
-    half3 s;
-    s  = DecodeHDR(tex2D(_MainTex, uv + d.xy));
-    s += DecodeHDR(tex2D(_MainTex, uv + d.zy));
-    s += DecodeHDR(tex2D(_MainTex, uv + d.xw));
-    s += DecodeHDR(tex2D(_MainTex, uv + d.zw));
+    half3 s = DecodeHDR(tex2D(_MainTex, uv + d.xy)) +
+              DecodeHDR(tex2D(_MainTex, uv + d.zy)) +
+              DecodeHDR(tex2D(_MainTex, uv + d.xw)) +
+              DecodeHDR(tex2D(_MainTex, uv + d.zw));
 
-    return s * (1.0 / 4);
+    return s * 0.25;
 #endif
 }
 
@@ -202,13 +197,13 @@ v2f_multitex vert_multitex(appdata_img v)
 
 // SMSS
 half AdjustDepth(half d){
-	d = tex2D(_FadeTex, half2(d, 0.5));
-	return saturate(d);
+    d = tex2D(_FadeTex, half2(d, 0.5));
+    return saturate(d);
 }
 
 half4 frag_prefilter(v2f_img i) : SV_Target
 {
-	float2 uv = i.uv + _MainTex_TexelSize.xy * _PrefilterOffs;
+    float2 uv = i.uv + _MainTex_TexelSize.xy * _PrefilterOffs;
 
 #if ANTI_FLICKER
     float3 d = _MainTex_TexelSize.xyx * float3(1, 1, 0);
@@ -239,7 +234,7 @@ half4 frag_prefilter(v2f_img i) : SV_Target
     // SMSS 
     half depth = tex2D(_FogTex, i.uv); // Deferred
     // half depth = tex2D(_FogTex, float2(i.uv.x, 1 - i.uv.y)); // Forward
-   	depth = AdjustDepth(depth);
+    depth = AdjustDepth(depth);
 
     return EncodeHDR(m * depth) * _BlurTint;
 }
@@ -268,7 +263,7 @@ half4 frag_upsample(v2f_multitex i) : SV_Target
 
 half4 frag_upsample_final(v2f_multitex i) : SV_Target
 {
-	half4 base = tex2D(_BaseTex, i.uvBase);
+    half4 base = tex2D(_BaseTex, i.uvBase);
     half3 blur = UpsampleFilter(i.uvMain);
 #if UNITY_COLORSPACE_GAMMA
     base.rgb = GammaToLinearSpace(base.rgb);
@@ -279,5 +274,5 @@ half4 frag_upsample_final(v2f_multitex i) : SV_Target
     // half depth = tex2D(_FogTex, float2(i.uvBase.x, 1 - i.uvBase.y)); // Forward
     depth = AdjustDepth(depth);
 
-    return lerp(base, half4(blur,1) * (1 / _Radius), clamp(depth ,0,_Intensity)) ;
+    return lerp(base, half4(blur, 1) * (1 / _Radius), clamp(depth, 0, _Intensity));
 }
