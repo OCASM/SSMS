@@ -268,16 +268,21 @@ half4 frag_upsample(v2f_multitex i) : SV_Target
 
 half4 frag_upsample_final(v2f_multitex i) : SV_Target
 {
-	half4 base = tex2D(_BaseTex, i.uvBase);
+    half4 base = tex2D(_BaseTex, i.uvBase);
     half3 blur = UpsampleFilter(i.uvMain);
-#if UNITY_COLORSPACE_GAMMA
-    base.rgb = GammaToLinearSpace(base.rgb);
-#endif
+//#if UNITY_COLORSPACE_GAMMA // at this point the color is already in Gamma as transformed in the frag_prefilter func, no need to transform again
+//     base.rgb = GammaToLinearSpace(base.rgb);
+// #endif
 
     // SMSS
     half depth = tex2D(_FogTex, i.uvBase); // Deferred
     // half depth = tex2D(_FogTex, float2(i.uvBase.x, 1 - i.uvBase.y)); // Forward
     depth = AdjustDepth(depth);
 
-    return lerp(base, half4(blur,1) * (1 / _Radius), clamp(depth ,0,_Intensity)) ;
+    half4 finalColor = 0;
+    finalColor.rgb = lerp(base, half4(blur,1) * (1 / _Radius), clamp(depth ,0,_Intensity));
+    finalColor.rgb = LinearToGammaSpace(finalColor.rgb); // transform back to Linear color space
+    finalColor.a = base.a;
+
+    return finalColor;
 }
