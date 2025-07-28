@@ -240,7 +240,9 @@ half4 frag_prefilter(v2f_img i) : SV_Target
     half depth = tex2D(_FogTex, i.uv); // Deferred
     // half depth = tex2D(_FogTex, float2(i.uv.x, 1 - i.uv.y)); // Forward
    	depth = AdjustDepth(depth);
-
+#if UNITY_COLORSPACE_GAMMA
+    // finalColor.rgb = LinearToGammaSpace(finalColor.rgb); // for non-mobile: should transform back to Linear color space 
+#endif
     return EncodeHDR(m * depth) * _BlurTint;
 }
 
